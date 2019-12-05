@@ -3,6 +3,12 @@ import java.util.Scanner;
 
 public class Game {
     public static void main(String[] args) throws FileNotFoundException{
+        /*
+        Character[] test = new Character[]{'b','l','a','k','e'};
+        System.out.println(buildWord(test));
+
+         */
+
         HashChain<String, String> hash = new HashChain<String,String>(3889);
         String startWord = "";
         String endWord = "";
@@ -20,7 +26,8 @@ public class Game {
         }
 
         openAndReadFile("dictionary-1.txt", hash);
-        if(!checkWords(startWord,endWord, hash)){
+        //if problem, mess around with the if statement below
+        if((!checkWord(startWord, hash) || !checkWord(endWord, hash)) || startWord.length() != endWord.length()){
             System.out.println("The words passed were either not the same length or not words at all.");
             System.out.println("There is no solution.");
             System.exit(0);
@@ -28,22 +35,32 @@ public class Game {
         TNode tStart = new TNode(startWord, null);
         TNode tEnd = new TNode(endWord, null);
 
+        QueueList<TNode> masterQ = new QueueList<>();
+        masterQ.enqueue(tStart);//now we know that whenever we hit a node with its parent null, it is the root/start
+        boolean found = false;
+        while(!found){
+            TNode workWith = masterQ.dequeue();
+            TNode foundNode = createAndCheckNodes(workWith, hash, masterQ, endWord);
+            if(!(foundNode == null)){//if we found the word, begin trace
+                // will need to store the values of each node we trace to print later
+                //arraylist would be best most likely for dynamic size
+
+                found = true;//set true once we find a word that matches the endword
+            }
+
+
+        }
+
 
 
     }
-    public static boolean checkWords(String startWord, String endWord, HashChain<String, String> hash){
-        if(startWord.length() == endWord.length()){
-            HashNode hnStart = hash.search(startWord,startWord);
-            HashNode hnEnd = hash.search(endWord,endWord);
-            if(hnStart == null || hnEnd == null){
-                return false;
-            }
-            else{
-                return true;
-            }
+
+    public static boolean checkWord(String word, HashChain<String, String> hash) {
+        HashNode hnStart = hash.search(word, word);
+        if (hnStart != null) {
+            return true;
         }
         return false;
-
     }
 
     private static void openAndReadFile(String fileName, HashChain h){
@@ -71,8 +88,11 @@ public class Game {
         }
 
     }
-    public static void createAndCheckNodes(TNode parent){
+
+
+    public static TNode createAndCheckNodes(TNode parent, HashChain<String, String> hash, QueueList<TNode> masterQ, String endWord){
         String word = parent.getElement().toString();
+        int found = -1;
         Character[] wordArray = new Character[word.length()];
         for(int i = 0; i < wordArray.length; i++){
             wordArray[i] = word.charAt(i);
@@ -87,18 +107,34 @@ public class Game {
                     char b = (char)a;
                     hold[i] = b;
                     //check to see if the character array is actually a word
+                    String newWord = buildWord(hold);
                     //if it is we create a new tnode and set its parent to parent passed here
-                    //if not then we do nothing and move onto the next letter
-                    
+                    if(checkWord(newWord, hash)){
+                        //if reach here, add word to Q unless its the endword
+                        if(newWord.equalsIgnoreCase(endWord)){
+                            //trace back to root and count by starting at the parent
+                            //will do this in another method called inside main somewhere
+                            return parent;
+                        }
+                        masterQ.enqueue(new TNode(newWord, parent));
+
+                    }
+
+
                 }
             }
         }
-
-    }
-    /*
-    public static String buildWord(String[] word){
+        return null;
 
     }
 
-     */
+    public static String buildWord(Character[] word){
+        String builtWord = "";
+        for(int i = 0; i < word.length; i++){
+            builtWord +=  word[i];
+        }
+        return builtWord;
+    }
+
+
 }
