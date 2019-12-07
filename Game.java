@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Game {
@@ -10,6 +11,7 @@ public class Game {
          */
 
         HashChain<String, String> hash = new HashChain<String,String>(3889);
+        HashChain<String, String> generatedWords = new HashChain<>(5001);
         String startWord = "";
         String endWord = "";
         int tryHops = 0;
@@ -36,18 +38,35 @@ public class Game {
         TNode tEnd = new TNode(endWord, null);
 
         QueueList<TNode> masterQ = new QueueList<>();
+        generatedWords.insert(new HashNode<>(startWord,startWord));
         masterQ.enqueue(tStart);//now we know that whenever we hit a node with its parent null, it is the root/start
         boolean found = false;
+        //System.out.println("********************************************************************");
+        ArrayList<String> walkItBack = new ArrayList<>();
         while(!found){
             TNode workWith = masterQ.dequeue();
-            TNode foundNode = createAndCheckNodes(workWith, hash, masterQ, endWord);
+            //System.out.println("FIRST " + workWith.getElement().toString());
+            TNode foundNode = createAndCheckNodes(workWith, hash, masterQ, endWord, generatedWords);
             if(!(foundNode == null)){//if we found the word, begin trace
                 // will need to store the values of each node we trace to print later
                 //arraylist would be best most likely for dynamic size
-
+                //System.out.println("made it");
+                //walkItBack.add(foundNode.getElement().toString());
+                walkItBack.add(endWord);
+                while(foundNode.getParent()!=null){
+                    walkItBack.add(foundNode.getElement().toString());
+                    foundNode = foundNode.getParent();
+                }
+                //print it out
+                String endStatment = startWord + " ";
+                for(int i = walkItBack.size() -1; i >=0; i--){
+                    endStatment += walkItBack.get(i) + " ";
+                }
+                System.out.println("Found the word in " + walkItBack.size() + " hops.");
+                System.out.println(endStatment);
                 found = true;//set true once we find a word that matches the endword
             }
-
+            //System.out.println("THIS " + workWith.getElement().toString());
 
         }
 
@@ -90,7 +109,7 @@ public class Game {
     }
 
 
-    public static TNode createAndCheckNodes(TNode parent, HashChain<String, String> hash, QueueList<TNode> masterQ, String endWord){
+    public static TNode createAndCheckNodes(TNode parent, HashChain<String, String> hash, QueueList<TNode> masterQ, String endWord, HashChain<String,String> generatedWords){
         String word = parent.getElement().toString();
         int found = -1;
         Character[] wordArray = new Character[word.length()];
@@ -98,31 +117,40 @@ public class Game {
             wordArray[i] = word.charAt(i);
         }//need loop
         int originalValue = 0;
-        for(int i = 0; i < wordArray.length; i++) {
+        for(int i = 0; i < wordArray.length; i++) {//loops through each letter in parent
             originalValue = wordArray[i];
+            System.out.println(originalValue);
+
             for(int j = 97; j <= 122; j++){
                 if(!(j == originalValue)){
                     int a = j;
                     Character[] hold = wordArray;
                     char b = (char)a;
                     hold[i] = b;
+
                     //check to see if the character array is actually a word
-                    String newWord = buildWord(hold);
+                    String newWord = buildWord(hold).trim();
                     //if it is we create a new tnode and set its parent to parent passed here
-                    if(checkWord(newWord, hash)){
+                    if(hash.search(newWord,newWord) != null){
                         //if reach here, add word to Q unless its the endword
                         if(newWord.equalsIgnoreCase(endWord)){
                             //trace back to root and count by starting at the parent
                             //will do this in another method called inside main somewhere
                             return parent;
                         }
-                        masterQ.enqueue(new TNode(newWord, parent));
+                        if(generatedWords.search(newWord,newWord) == null){
+                            masterQ.enqueue(new TNode(newWord, parent));
+                            generatedWords.insert(new HashNode<>(newWord, newWord));
+                        }
+
+
 
                     }
 
 
                 }
             }
+            wordArray[i] = (char)originalValue;
         }
         return null;
 
