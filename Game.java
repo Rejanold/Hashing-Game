@@ -21,8 +21,8 @@ public class Game {
         String endWord = "";
         int tryHops = 0;
         if (args.length == 3) {
-            startWord = args[0];
-            endWord = args[1];
+            startWord = args[0].toLowerCase();
+            endWord = args[1].toLowerCase();
             tryHops = Integer.parseInt(args[2]);
         } else {
             System.out.println("Please enter in the required number of fields as follows: ");
@@ -40,7 +40,7 @@ public class Game {
         TNode tEnd = new TNode(endWord, null);
         QueueList<TNode> masterQ = new QueueList<>();
         generatedWords.insert(new HashNode<>(startWord, startWord));
-        masterQ.enqueue(tStart);//now we know that whenever we hit a node with its parent null, it is the root/start
+        masterQ.enqueue(tStart);
         boolean found = false;
         ArrayList<String> walkItBack = new ArrayList<>();
         while (!found) {
@@ -63,7 +63,7 @@ public class Game {
                     System.out.println("Can make it in " + walkItBack.size() + " hops.");
                     System.out.println(endStatement);
                 }
-                found = true;//set true once we find a word that matches the endword
+                found = true;//set true once we find a word that matches the end word
             }
         }
     }
